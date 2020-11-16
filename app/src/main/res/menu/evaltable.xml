@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="新建评估量表"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item android:id="@+id/evaltable_new_id1"
+                android:title="UPDRS 第1,2,4部分"/>
+            <item android:id="@+id/evaltable_new_id2"
+                android:title="UPDRS 第3部分"/>
+            <item android:id="@+id/evaltable_new_id3"
+                android:title="MDS-UPDRS 第1,2,4部分"/>
+            <item android:id="@+id/evaltable_new_id4"
+                android:title="MDS-UPDRS 第3部分"/>
+            <item android:id="@+id/evaltable_new_id5"
+                android:title="异动能量表"/>
+        </menu>
+    </item>
+
+    <item android:id="@+id/evaltable_config"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="配置"/>
+
+</menu>
