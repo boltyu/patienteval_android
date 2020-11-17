@@ -40,7 +40,6 @@ import com.example.patienteval.ui.login.LoginViewModel;
 import com.example.patienteval.ui.login.LoginViewModelFactory;
 
 public class LoginActivity extends AppCompatActivity {
-
     private LoginViewModel loginViewModel;
     private final int PERMISSIONCODE_STORAGE = 1, PERMISSIONCODE_NETWORK = 2;
     private final int HTTP_LOGIN_SUCCESS = 1, HTTP_LOGIN_FAILED = 2;
@@ -164,7 +163,6 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         usernameEditText.setText("admin");
-        passwordEditText.setText("000000");
         loginButton.setEnabled(true);
     }
 

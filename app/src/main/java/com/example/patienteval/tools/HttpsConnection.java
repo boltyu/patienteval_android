@@ -9,6 +9,7 @@ import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -46,7 +48,7 @@ public class HttpsConnection{
     private String urlHost = "";
     private String urlLogin = "", urlLogout = "";
     private String urlTable = "";
-
+    private String urlTablelist = "";
     HostnameVerifier hostnameVerifier;
     Context pContext;
 
@@ -71,7 +73,6 @@ public class HttpsConnection{
     }
 
     public String getHostaddress(){  // self verify
-
         return hostaddress;
     }
 
@@ -81,8 +82,104 @@ public class HttpsConnection{
         urlLogin = urlHost + "/api/login";
         urlLogout = urlHost + "/api/logout";
         urlTable = urlHost + "/api/scoring/GetScoringTableDetail";
+        urlTablelist = urlHost + "/api/scoring/GetScoringTypeList";
     }
 
+
+    public JSONArray getTableList(){
+        try{
+            JSONObject resultjsonObject = HttpRequest("GET",urlTablelist,null);
+            if (resultjsonObject != null)
+                if (resultjsonObject.optInt("code") == 0) {    // json result code
+                    //return re.optJSONObject("data");    null ptr
+                    return resultjsonObject.optJSONArray("data");
+                }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public JSONArray getTable(int index){
+        try {
+            String urlTarget = urlTable + "?id=" + index;
+            JSONObject resultjsonObject = HttpRequest("GET", urlTarget, null);
+            if (resultjsonObject != null)
+                if (resultjsonObject.optInt("code") == 0) {    // json result code
+                    //return re.optJSONObject("data");    null ptr
+                    return resultjsonObject.optJSONArray("data");
+                }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Boolean loginUser(String username, String password, Boolean iflogout){
+        try{
+            String urlTarget = urlLogin;
+            if(iflogout)
+                urlTarget = urlLogout;
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("userName",username);
+            jsonObject.put("password",password);
+            JSONObject resultjsonObject = HttpRequest("POST",urlTarget,jsonObject.toString().getBytes());
+            if(resultjsonObject != null)
+                if(resultjsonObject.optInt("code") == 0)   // json result code
+                    return true;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private JSONObject HttpRequest(String requestMethod, String requestUrl, byte[] payload) {
+        try {
+            URL targetUrl = new URL(requestUrl);
+            HttpsURLConnection privateconnection = (HttpsURLConnection) targetUrl.openConnection();
+            privateconnection.setHostnameVerifier(hostnameVerifier);
+            privateconnection.setRequestMethod(requestMethod);
+            privateconnection.setConnectTimeout(5000);
+            privateconnection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+            privateconnection.setRequestProperty("Cookie", sessionstr);
+            if(requestMethod.equals("POST")){
+                privateconnection.setRequestProperty("Content-Length", String.valueOf(payload.length));
+                privateconnection.setDoOutput(true);
+                OutputStream outputStream = privateconnection.getOutputStream();
+                outputStream.write(payload);
+                outputStream.flush();
+                outputStream.close();
+            }
+            int rcode = privateconnection.getResponseCode(); // http result code
+            if (rcode == 200) {
+                InputStream inputStream = privateconnection.getInputStream();
+                Log.d("http","inputstream avaliable:"+inputStream.available()+"");
+                StringBuilder sb=new StringBuilder();
+                int flag;
+                byte[] buf=new byte[1048576];
+                while((flag=inputStream.read(buf))!=-1){
+                    sb.append(new String(buf,0,flag));
+                }
+                Log.d("http","inputstream recvcount:"+sb.length());
+                if(requestUrl.equals(urlLogin)){
+                    String cookieVal = privateconnection.getHeaderField("Set-Cookie");
+                    sessionstr = cookieVal.substring(0, cookieVal.indexOf(";"));
+                    SharedPreferences sharedPreferences = pContext.getSharedPreferences("cache",Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor =  sharedPreferences.edit();
+                    editor.putString("cookie",sessionstr);
+                    editor.apply();
+                }
+                JSONObject re = new JSONObject(sb.toString());
+                privateconnection.disconnect();
+                return re;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
     public static String bytesToHexString(byte[] src) {
         StringBuilder stringBuilder = new StringBuilder("");
@@ -121,98 +218,4 @@ public class HttpsConnection{
         }
         return bytesToHexString(digest.digest());
     }
-
-    public JSONArray getTable(int index){
-        try{
-            String urlTarget = urlTable + "?id=" + index;
-            URL targetUrl = new URL(urlTarget);
-            HttpsURLConnection privateconnection = (HttpsURLConnection)targetUrl.openConnection();
-            privateconnection.setHostnameVerifier(hostnameVerifier);
-            privateconnection.setRequestMethod("GET");
-            privateconnection.setConnectTimeout(5000);
-            privateconnection.setRequestProperty("Content-Type","application/json;charset=utf-8");
-            privateconnection.setRequestProperty("Cookie",sessionstr);
-            int rcode = privateconnection.getResponseCode(); // http result code
-            if(rcode == 200) {
-                InputStream inputStream = privateconnection.getInputStream();
-                StringBuilder sb=new StringBuilder();
-                int flag;
-                byte[] buf=new byte[1048576];  //  应增加防止溢出 1M
-                while((flag=inputStream.read(buf))!=-1){
-                    sb.append(new String(buf,0,flag));
-                }
-                //Log.d("httpinfo","recvdata:"+sb.toString());
-                int len = 0, total = privateconnection.getContentLength();
-                JSONObject re = new JSONObject(sb.toString());
-                privateconnection.disconnect();
-                if(re.optInt("code") == 0) {    // json result code
-                    //return re.optJSONObject("data");    null ptr
-                    return re.optJSONArray("data");
-                }
-            }else{
-
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-    public Boolean loginUser(String username, String password, Boolean iflogout){
-        try{
-            String urlTarget = urlLogin;
-            if(iflogout)
-                urlTarget = urlLogout;
-            URL targetUrl = new URL(urlTarget);
-            HttpsURLConnection privateconnection = (HttpsURLConnection)targetUrl.openConnection();
-            privateconnection.setHostnameVerifier(hostnameVerifier);
-            privateconnection.setRequestMethod("POST");
-            privateconnection.setConnectTimeout(5000);
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userName",username);
-            jsonObject.put("password",password);
-            privateconnection.setRequestProperty("Content-Type","application/json;charset=utf-8");
-            int contentlength = jsonObject.toString().length();
-            privateconnection.setRequestProperty("Content-Length", String.valueOf(contentlength));
-            privateconnection.setDoOutput(true);
-            OutputStream outputStream = privateconnection.getOutputStream();
-            outputStream.write(jsonObject.toString().getBytes());
-            outputStream.flush();
-            outputStream.close();
-            int rcode = privateconnection.getResponseCode(); // http result code
-            Log.d("httpinfo","rcode:"+String.valueOf(rcode)+",  contentlength:"+contentlength+",  content:"+jsonObject.toString());
-            if(rcode == 200) {
-                if(iflogout)
-                    return true;
-
-                InputStream inputStream = privateconnection.getInputStream();
-                StringBuilder sb=new StringBuilder();
-                int flag;
-                byte[] buf=new byte[1024];
-                while((flag=inputStream.read(buf))!=-1){
-                    sb.append(new String(buf,0,flag));
-                }
-                Log.d("httpinfo","recvdata:"+sb.toString());
-                int len = 0, total = privateconnection.getContentLength();
-                JSONObject re = new JSONObject(sb.toString());
-                privateconnection.disconnect();
-                if(re.optInt("code") == 0) {    // json result code
-                    String cookieVal = privateconnection.getHeaderField("Set-Cookie");
-                    sessionstr = cookieVal.substring(0, cookieVal.indexOf(";"));
-                    SharedPreferences sharedPreferences = pContext.getSharedPreferences("cache",Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor =  sharedPreferences.edit();
-                    editor.putString("cookie",sessionstr);
-                    editor.apply();
-                    return true;
-                }
-            }else{
-
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return false;
-    }
-
 }
