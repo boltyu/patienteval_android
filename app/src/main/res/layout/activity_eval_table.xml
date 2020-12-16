@@ -8,9 +8,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="5dp"
         android:orientation="vertical">
         <LinearLayout
+            android:layout_margin="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -24,13 +24,17 @@
                     android:orientation="horizontal"
                     android:gravity="fill_horizontal">
                     <TextView
+                        android:labelFor="@+id/edittext_patientnum"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="病例编号"
                         android:layout_weight="1"/>
-                    <EditText
+                    <AutoCompleteTextView
+                        android:completionThreshold="1"
+                        android:id="@+id/edittext_patientnum"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:textAlignment="center"
                         android:layout_weight="3"/>
                 </LinearLayout>
                 <LinearLayout
@@ -39,11 +43,15 @@
                     android:orientation="horizontal"
                     android:gravity="fill_horizontal">
                     <TextView
+                        android:labelFor="@id/edittext_patientname"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="患者姓名"
                         android:layout_weight="1"/>
-                    <EditText
+                    <AutoCompleteTextView
+                        android:textAlignment="center"
+                        android:id="@+id/edittext_patientname"
+                        android:completionThreshold="1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="3"/>
@@ -65,11 +73,13 @@
                         android:orientation="horizontal"
                         android:layout_weight="2">
                         <RadioButton
+                            android:id="@+id/radiobtn_bfsurgery"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="术前"/>
                         <RadioButton
+                            android:id="@+id/radiobtn_afsurgery"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -83,7 +93,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
             </LinearLayout>
-
         </LinearLayout>
 
     </ScrollView>

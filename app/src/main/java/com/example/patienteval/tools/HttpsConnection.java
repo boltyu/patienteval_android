@@ -11,6 +11,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,7 +49,9 @@ public class HttpsConnection{
     private String urlHost = "";
     private String urlLogin = "", urlLogout = "";
     private String urlTable = "";
+    private String urlTableSubmit = "";
     private String urlTablelist = "";
+    private String urlPatientlist = "";
     HostnameVerifier hostnameVerifier;
     Context pContext;
 
@@ -82,9 +85,10 @@ public class HttpsConnection{
         urlLogin = urlHost + "/api/login";
         urlLogout = urlHost + "/api/logout";
         urlTable = urlHost + "/api/scoring/GetScoringTableDetail";
+        urlTableSubmit = urlHost + "/api/scoring/SubmitScoringTableResult";
         urlTablelist = urlHost + "/api/scoring/GetScoringTypeList";
+        urlPatientlist = urlHost + "/api/patient/searchAllPatientList?queryKey=";
     }
-
 
     public JSONArray getTableList(){
         try{
@@ -100,6 +104,31 @@ public class HttpsConnection{
         return null;
     }
 
+    public JSONArray getPatientList(){
+        try{
+            JSONObject resultjsonObject = HttpRequest("GET",urlPatientlist,null);
+            if (resultjsonObject != null)
+                if (resultjsonObject.optInt("code") == 0) {    // json result code
+                    //return re.optJSONObject("data");    null ptr
+                    return resultjsonObject.optJSONArray("rows");
+                }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String postTable(JSONObject json_payload){
+        try{
+            String urlTarget = urlTableSubmit;
+            JSONObject resultjsonObj = HttpRequest("POST", urlTarget, json_payload.toString().getBytes());
+            if (resultjsonObj != null)
+                return resultjsonObj.optString("msg");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return  null;
+    }
 
     public JSONArray getTable(int index){
         try {

@@ -27,6 +27,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
+        android:text="000000"
         android:id="@+id/password"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
